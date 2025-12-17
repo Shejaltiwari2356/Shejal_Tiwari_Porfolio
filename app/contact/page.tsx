@@ -116,7 +116,7 @@ export default function ContactPage() {
                   value={formData.name}
                   onChange={handleChange}
                   required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-all"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-all text-gray-900"
                   placeholder="John Doe"
                 />
               </div>
@@ -133,7 +133,7 @@ export default function ContactPage() {
                   value={formData.email}
                   onChange={handleChange}
                   required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-all"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-all text-gray-900"
                   placeholder="john@example.com"
                 />
               </div>
@@ -150,7 +150,7 @@ export default function ContactPage() {
                   value={formData.subject}
                   onChange={handleChange}
                   required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-all"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-all text-gray-900"
                   placeholder="Project Inquiry"
                 />
               </div>
@@ -167,7 +167,7 @@ export default function ContactPage() {
                   onChange={handleChange}
                   required
                   rows={6}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-all resize-none"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-all resize-none text-gray-900"
                   placeholder="Tell me about your project..."
                 />
               </div>
@@ -218,7 +218,6 @@ export default function ContactPage() {
 
           {/* CONTACT INFO SIDEBAR */}
           <div className="md:col-span-2 space-y-8">
-            {/* Direct Contact */}
             <div>
               <h2 className="text-xl font-serif font-normal text-gray-900 mb-4">
                 Direct Contact
@@ -255,7 +254,6 @@ export default function ContactPage() {
               </div>
             </div>
 
-            {/* Social Links */}
             <div>
               <h2 className="text-xl font-serif font-normal text-gray-900 mb-4">
                 Connect Online
@@ -289,7 +287,6 @@ export default function ContactPage() {
               </div>
             </div>
 
-            {/* Quick Note */}
             <div className="p-6 bg-gray-900 rounded-sm text-white">
               <h3 className="font-semibold mb-2">Response Time</h3>
               <p className="text-sm text-gray-300 leading-relaxed">
@@ -337,7 +334,6 @@ export default function ContactPage() {
         </section>
       </main>
 
-      {/* FOOTER */}
       <footer className="border-t border-gray-200 py-12 mt-20">
         <div className="max-w-7xl mx-auto px-6">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
