@@ -13,11 +13,13 @@
     "@sanity/image-url": "^1.2.0",
     "@sanity/vision": "^4.21.1",
     "clsx": "^2.1.1",
+    "highlight.js": "^11.11.1",
     "katex": "^0.16.27",
     "lucide-react": "^0.561.0",
     "next": "^16.0.10",
     "next-sanity": "^11.6.11",
     "react": "^19.2.3",
+    "react-18-image-lightbox": "^5.1.4",
     "react-dom": "^19.2.3",
     "react-katex": "^3.1.0",
     "react-latex-next": "^3.0.0",
@@ -25,6 +27,7 @@
     "sanity": "^4.21.1",
     "sanity-plugin-latex-input": "^2.0.6",
     "styled-components": "^6.1.19",
+    "swiper": "^12.0.3",
     "tailwind-merge": "^3.4.0"
   },
   "devDependencies": {
