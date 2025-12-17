@@ -297,7 +297,7 @@ export default function Home() {
               projects.map((project: Project, index: number) => (
                 <Link
                   key={project._id}
-                  href={`/projects/${project.slug}`}
+                  href={`/projectsArchive/${project.slug}`}
                   className="group block bg-white border border-gray-200 hover:border-gray-900 rounded-sm p-6 md:p-8 transition-all"
                 >
                   <div className="flex flex-col md:flex-row gap-4 md:gap-8">
