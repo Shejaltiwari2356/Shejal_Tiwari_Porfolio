@@ -1,334 +1,348 @@
+// app/projectsArchive/[slug]/page.tsx
+// This is the ONLY file you need to update if you deleted app/blog/[slug]
+
 import React from 'react';
 import Link from 'next/link';
-import { 
-  ArrowLeft, Github, ExternalLink, Calendar, 
-  BookOpen, ArrowRight, Target, Lightbulb, 
-  Zap, CheckCircle2, Code2
-} from 'lucide-react';
+import Image from 'next/image';
+import { ArrowLeft, Calendar, ExternalLink, Github } from 'lucide-react';
 import { client } from '@/sanity/lib/client';
-import { urlForImage } from '@/sanity/lib/image';
+import { PortableText } from '@portabletext/react';
+import { PortableTextBlock } from 'sanity';
+import imageUrlBuilder from '@sanity/image-url';
+import { SanityImageSource } from '@sanity/image-url/lib/types/types';
 
-interface RelatedPost {
-  _id: string;
-  title: string;
-  slug: string;
-  overview?: string;
-  publishedAt?: string;
+// Image URL Builder
+const builder = imageUrlBuilder(client);
+function urlFor(source: SanityImageSource) {
+  return builder.image(source);
 }
 
+// Types
 interface Project {
-  _id: string;
   title: string;
-  slug: string;
-  overview?: string;
-  category?: string;
-  tags?: string[];
-  githubLink?: string;
-  demoLink?: string;
-  _createdAt: string;
-  problem?: string;
-  solution?: string;
-  features?: string[];
-  technicalHighlights?: string[];
-  images?: { asset: any; caption?: string }[];
-  relatedPosts?: RelatedPost[];
+  overview: string;
+  category: string;
+  tags: string[];
+  body: PortableTextBlock[];
+  projectUrl?: string;
+  githubUrl?: string;
+  completedAt?: string;
+  image?: {
+    asset: { _ref: string };
+    alt?: string;
+  };
 }
 
-export default async function ProjectDetailPage({ 
-  params 
-}: { 
-  params: Promise<{ slug: string }> 
-}) {
-  const resolvedParams = await params;
-  const slug = resolvedParams.slug;
+interface PortableTextImage {
+  asset?: { _ref?: string };
+  alt?: string;
+  caption?: string;
+}
 
-  // Fetch project with related articles
-  const project: Project = await client.fetch(
-    `*[_type == "project" && slug.current == $slug][0] {
-      _id,
-      title,
-      "slug": slug.current,
-      overview,
-      category,
-      tags,
-      githubLink,
-      demoLink,
-      _createdAt,
-      problem,
-      solution,
-      features,
-      technicalHighlights,
-      images[] {
-        asset,
-        caption
-      },
-      "relatedPosts": *[_type == "post" && references(^._id)] | order(publishedAt desc) {
-        _id,
-        title,
-        "slug": slug.current,
-        overview,
-        publishedAt
-      }
-    }`, 
-    { slug }
-  );
+interface PortableTextValue {
+  body?: string;
+  code?: string;
+  href?: string;
+  blank?: boolean;
+}
+
+// Fetch Data
+async function getProject(slug: string) {
+  const query = `*[_type == "project" && slug.current == $slug][0] {
+    title,
+    overview,
+    category,
+    tags,
+    body,
+    projectUrl,
+    githubUrl,
+    completedAt,
+    image
+  }`;
+  return client.fetch(query, { slug });
+}
+
+// Custom Portable Text Components
+const portableTextComponents = {
+  types: {
+    image: ({ value }: { value: PortableTextImage }) => {
+      if (!value?.asset?._ref) return null;
+      return (
+        <figure className="my-8 md:my-12">
+          <div className="relative w-full aspect-video rounded-sm overflow-hidden bg-gray-100">
+            <Image
+              src={urlFor(value).width(1200).url()}
+              alt={value.alt || 'Project image'}
+              fill
+              className="object-cover"
+              sizes="(max-width: 768px) 100vw, 768px"
+            />
+          </div>
+          {value.caption && (
+            <figcaption className="text-sm text-gray-500 text-center mt-3 italic">
+              {value.caption}
+            </figcaption>
+          )}
+        </figure>
+      );
+    },
+    code: ({ value }: { value: PortableTextValue }) => {
+      return (
+        <pre className="bg-gray-900 text-gray-100 p-6 rounded-sm overflow-x-auto my-6">
+          <code className="text-sm font-mono">{value.code}</code>
+        </pre>
+      );
+    },
+  },
+  block: {
+    h2: ({ children }: { children?: React.ReactNode }) => (
+      <h2 className="text-2xl md:text-3xl font-semibold text-gray-900 mt-12 mb-4 leading-tight">
+        {children}
+      </h2>
+    ),
+    h3: ({ children }: { children?: React.ReactNode }) => (
+      <h3 className="text-xl md:text-2xl font-semibold text-gray-900 mt-10 mb-3 leading-tight">
+        {children}
+      </h3>
+    ),
+    h4: ({ children }: { children?: React.ReactNode }) => (
+      <h4 className="text-lg md:text-xl font-semibold text-gray-900 mt-8 mb-2 leading-tight">
+        {children}
+      </h4>
+    ),
+    normal: ({ children }: { children?: React.ReactNode }) => (
+      <p className="text-base md:text-lg text-gray-700 leading-relaxed mb-6 font-normal">
+        {children}
+      </p>
+    ),
+    blockquote: ({ children }: { children?: React.ReactNode }) => (
+      <blockquote className="border-l-4 border-gray-900 pl-6 my-8 text-gray-700 font-normal">
+        {children}
+      </blockquote>
+    ),
+  },
+  list: {
+    bullet: ({ children }: { children?: React.ReactNode }) => (
+      <ul className="list-disc list-outside ml-6 my-6 space-y-2 text-gray-700">
+        {children}
+      </ul>
+    ),
+    number: ({ children }: { children?: React.ReactNode }) => (
+      <ol className="list-decimal list-outside ml-6 my-6 space-y-2 text-gray-700">
+        {children}
+      </ol>
+    ),
+  },
+  marks: {
+    link: ({ children, value }: { children?: React.ReactNode; value?: PortableTextValue }) => {
+      const rel = !value?.href?.startsWith('/') ? 'noreferrer noopener' : undefined;
+      return (
+        <a
+          href={value?.href}
+          rel={rel}
+          target={value?.blank ? '_blank' : undefined}
+          className="text-gray-900 underline decoration-gray-300 hover:decoration-gray-900 transition-colors"
+        >
+          {children}
+        </a>
+      );
+    },
+    strong: ({ children }: { children?: React.ReactNode }) => (
+      <strong className="font-semibold text-gray-900">{children}</strong>
+    ),
+    em: ({ children }: { children?: React.ReactNode }) => (
+      <em className="italic">{children}</em>
+    ),
+    code: ({ children }: { children?: React.ReactNode }) => (
+      <code className="bg-gray-100 text-gray-900 px-1.5 py-0.5 rounded text-sm font-mono">
+        {children}
+      </code>
+    ),
+  },
+};
+
+// Metadata
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const project = await getProject(slug);
+  return {
+    title: `${project?.title || 'Project'} | Shejal Tiwari`,
+    description: project?.overview,
+  };
+}
+
+// Main Component
+export default async function ProjectPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const project: Project = await getProject(slug);
 
   if (!project) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white">
         <div className="text-center">
-          <h1 className="text-2xl font-serif text-gray-900 mb-4">Project not found</h1>
+          <h1 className="text-2xl font-serif font-normal mb-4">Project not found</h1>
           <Link href="/projectsArchive" className="text-gray-900 hover:text-gray-600 underline">
-            Back to Projects Archive
+            Back to Projects
           </Link>
         </div>
       </div>
     );
   }
 
-  const date = new Date(project._createdAt).toLocaleDateString('en-US', {
-    month: 'long',
-    year: 'numeric'
-  });
-
   return (
     <div className="min-h-screen bg-white">
       {/* NAVBAR */}
-      <nav className="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm">
+      <nav className="sticky top-0 z-50 bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex justify-between items-center">
+            <Link 
+              href="/projectsArchive" 
+              className="group flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 transition-colors"
+            >
+              <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
+              Back to Projects
+            </Link>
             <Link href="/" className="text-xl font-semibold text-gray-900 hover:text-gray-700 transition-colors">
               Shejal Tiwari
             </Link>
-            <div className="hidden md:flex gap-8 items-center">
-              <Link href="/projectsArchive" className="text-gray-900 font-medium text-sm">
-                Projects
-              </Link>
-              <Link href="/writings" className="text-gray-600 hover:text-gray-900 transition-colors text-sm">
-                Writings
-              </Link>
-              <a href="/Shejal_Tiwari_Resume.pdf" target="_blank" rel="noopener noreferrer" className="text-gray-600 hover:text-gray-900 transition-colors text-sm">
-                Resume
-              </a>
-              <Link href="/contact" className="px-5 py-2 bg-gray-900 hover:bg-gray-700 text-white rounded-md text-sm transition-colors">
-                Contact
-              </Link>
-            </div>
           </div>
         </div>
       </nav>
 
-      <main className="max-w-4xl mx-auto px-6 py-12 md:py-16">
-        {/* BACK BUTTON */}
-        <div className="mb-8">
-          <Link 
-            href="/projectsArchive" 
-            className="group inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 transition-colors"
-          >
-            <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
-            Back to Projects
-          </Link>
+      {/* PROJECT HEADER */}
+      <header className="max-w-4xl mx-auto px-6 pt-12 md:pt-20 pb-8 md:pb-12">
+        {/* Category Badge */}
+        <div className="mb-6">
+          <span className="inline-block px-3 py-1 bg-gray-900 text-white text-xs uppercase tracking-wide rounded-full">
+            {project.category}
+          </span>
         </div>
 
-        {/* HEADER */}
-        <header className="mb-12 md:mb-16">
-          <div className="flex flex-wrap gap-3 items-center mb-6 text-sm">
-            {project.category && (
-              <span className="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-full text-xs uppercase tracking-wide">
-                {project.category}
+        {/* Title */}
+        <h1 className="text-4xl md:text-5xl lg:text-6xl font-semibold text-gray-900 mb-6 leading-tight">
+          {project.title}
+        </h1>
+
+        {/* Overview */}
+        <p className="text-lg md:text-xl text-gray-600 leading-relaxed mb-8 font-normal">
+          {project.overview}
+        </p>
+
+        {/* Tags */}
+        {project.tags && project.tags.length > 0 && (
+          <div className="flex flex-wrap gap-2 mb-8">
+            {project.tags.map((tag) => (
+              <span 
+                key={tag} 
+                className="px-3 py-1.5 bg-gray-100 border border-gray-200 text-gray-700 rounded-full text-sm"
+              >
+                {tag}
               </span>
-            )}
-            <span className="flex items-center gap-1.5 text-gray-500">
-              <Calendar size={14} /> {date}
-            </span>
+            ))}
           </div>
+        )}
 
-          <h1 className="text-3xl md:text-5xl font-serif font-normal text-gray-900 mb-6 leading-tight">
-            {project.title}
-          </h1>
+        {/* Links */}
+        <div className="flex flex-wrap gap-3">
+          {project.projectUrl && (
+            <a
+              href={project.projectUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 px-4 py-2 bg-gray-900 hover:bg-gray-700 text-white rounded-md text-sm transition-all"
+            >
+              <ExternalLink size={16} />
+              View Project
+            </a>
+          )}
+          {project.githubUrl && (
+            <a
+              href={project.githubUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 hover:border-gray-900 text-gray-700 hover:text-gray-900 rounded-md text-sm transition-all"
+            >
+              <Github size={16} />
+              View Code
+            </a>
+          )}
+        </div>
+      </header>
 
-          {project.overview && (
-            <p className="text-lg md:text-xl text-gray-600 leading-relaxed mb-8">
-              {project.overview}
-            </p>
+      {/* HERO IMAGE */}
+      {project.image && (
+        <div className="max-w-5xl mx-auto px-6 mb-12 md:mb-16">
+          <div className="relative w-full aspect-video rounded-sm overflow-hidden bg-gray-100">
+            <Image
+              src={urlFor(project.image).width(1200).url()}
+              alt={project.image.alt || project.title}
+              fill
+              className="object-cover"
+              sizes="(max-width: 768px) 100vw, 1200px"
+              priority
+            />
+          </div>
+        </div>
+      )}
+
+      {/* PROJECT CONTENT */}
+      <main className="max-w-3xl mx-auto px-6 pb-20">
+        <article className="prose-custom">
+          <PortableText 
+            value={project.body} 
+            components={portableTextComponents}
+          />
+        </article>
+
+        {/* PROJECT FOOTER */}
+        <div className="mt-16 pt-12 border-t border-gray-200">
+          {/* Tags Repeat */}
+          {project.tags && project.tags.length > 0 && (
+            <div className="mb-8">
+              <h3 className="text-sm font-semibold text-gray-900 mb-3 uppercase tracking-wide">
+                Technologies
+              </h3>
+              <div className="flex flex-wrap gap-2">
+                {project.tags.map((tag) => (
+                  <span
+                    key={tag}
+                    className="px-3 py-1.5 bg-gray-100 border border-gray-200 text-gray-700 rounded-full text-sm"
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            </div>
           )}
 
-          {/* Links */}
-          <div className="flex flex-wrap gap-4">
-            {project.githubLink && (
-              <a 
-                href={project.githubLink}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-5 py-2.5 bg-gray-900 hover:bg-gray-700 text-white rounded-md text-sm transition-colors"
-              >
-                <Github className="w-4 h-4" />
-                View Code
-              </a>
-            )}
-            {project.demoLink && (
-              <a 
-                href={project.demoLink}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-5 py-2.5 bg-white hover:bg-gray-50 text-gray-900 border border-gray-300 rounded-md text-sm transition-colors"
-              >
-                <ExternalLink className="w-4 h-4" />
-                Live Demo
-              </a>
-            )}
-          </div>
-        </header>
-
-        {/* TECH STACK */}
-        {project.tags && project.tags.length > 0 && (
-          <section className="mb-12 md:mb-16 pb-12 md:pb-16 border-b border-gray-200">
-            <h2 className="text-sm uppercase tracking-wide text-gray-500 mb-4">Tech Stack</h2>
-            <div className="flex flex-wrap gap-2">
-              {project.tags.map((tag: string, i: number) => (
-                <span key={i} className="px-4 py-2 bg-gray-100 text-gray-700 rounded-full text-sm">
-                  {tag}
-                </span>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {/* PROBLEM & SOLUTION */}
-        {(project.problem || project.solution) && (
-          <section className="mb-12 md:mb-16">
-            <h2 className="text-2xl md:text-3xl font-serif font-normal text-gray-900 mb-8 flex items-center gap-3">
-              <Target className="w-6 h-6 text-gray-900" />
-              Project Overview
-            </h2>
-            <div className="grid md:grid-cols-2 gap-6">
-              {project.problem && (
-                <div className="bg-gray-50 border border-gray-200 rounded-sm p-6">
-                  <div className="flex items-start gap-3 mb-3">
-                    <Lightbulb className="w-5 h-5 text-gray-900 shrink-0 mt-1" />
-                    <h3 className="font-semibold text-gray-900">The Problem</h3>
-                  </div>
-                  <p className="text-gray-600 leading-relaxed">{project.problem}</p>
-                </div>
-              )}
-              {project.solution && (
-                <div className="bg-gray-50 border border-gray-200 rounded-sm p-6">
-                  <div className="flex items-start gap-3 mb-3">
-                    <Zap className="w-5 h-5 text-gray-900 shrink-0 mt-1" />
-                    <h3 className="font-semibold text-gray-900">The Solution</h3>
-                  </div>
-                  <p className="text-gray-600 leading-relaxed">{project.solution}</p>
-                </div>
-              )}
-            </div>
-          </section>
-        )}
-
-        {/* KEY FEATURES */}
-        {project.features && project.features.length > 0 && (
-          <section className="mb-12 md:mb-16">
-            <h2 className="text-2xl md:text-3xl font-serif font-normal text-gray-900 mb-8 flex items-center gap-3">
-              <CheckCircle2 className="w-6 h-6 text-gray-900" />
-              Key Features
-            </h2>
-            <div className="space-y-4">
-              {project.features.map((feature: string, index: number) => (
-                <div key={index} className="flex items-start gap-4 p-5 bg-white border border-gray-200 rounded-sm">
-                  <div className="w-6 h-6 bg-gray-900 text-white rounded-full flex items-center justify-center shrink-0 text-sm font-semibold">
-                    {index + 1}
-                  </div>
-                  <p className="text-gray-600 leading-relaxed pt-0.5">{feature}</p>
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {/* TECHNICAL HIGHLIGHTS */}
-        {project.technicalHighlights && project.technicalHighlights.length > 0 && (
-          <section className="mb-12 md:mb-16">
-            <h2 className="text-2xl md:text-3xl font-serif font-normal text-gray-900 mb-8 flex items-center gap-3">
-              <Code2 className="w-6 h-6 text-gray-900" />
-              Technical Implementation
-            </h2>
-            <div className="bg-gray-900 rounded-sm p-6 md:p-8">
-              <ul className="space-y-4">
-                {project.technicalHighlights.map((highlight: string, index: number) => (
-                  <li key={index} className="flex items-start gap-3 text-gray-100">
-                    <span className="text-gray-400 shrink-0 mt-1">›</span>
-                    <span className="leading-relaxed">{highlight}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </section>
-        )}
-
-        {/* PROJECT GALLERY */}
-        {project.images && project.images.length > 0 && (
-          <section className="mb-12 md:mb-16">
-            <h2 className="text-2xl md:text-3xl font-serif font-normal text-gray-900 mb-8">
-              Project Gallery
-            </h2>
-            <div className="space-y-8">
-              {project.images.map((image: any, index: number) => (
-                <figure key={index} className="bg-gray-50 border border-gray-200 rounded-sm overflow-hidden">
-                  <img 
-                    src={urlForImage(image)} 
-                    alt={image.caption || `Project screenshot ${index + 1}`}
-                    className="w-full h-auto"
-                  />
-                  {image.caption && (
-                    <figcaption className="px-6 py-4 text-sm text-gray-600 border-t border-gray-200">
-                      {image.caption}
-                    </figcaption>
-                  )}
-                </figure>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {/* RELATED ARTICLES */}
-        {project.relatedPosts && project.relatedPosts.length > 0 && (
-          <section className="pt-12 md:pt-16 border-t border-gray-200">
-            <div className="flex items-center gap-3 mb-8">
-              <BookOpen className="w-6 h-6 text-gray-900" />
-              <h2 className="text-2xl md:text-3xl font-serif font-normal text-gray-900">
-                Related Articles
-              </h2>
-            </div>
-            <p className="text-gray-600 mb-8 leading-relaxed">
-              I documented my learnings and deep technical insights from building this project. Read the full articles below.
+          {/* CTA */}
+          <div className="bg-gray-50 border border-gray-200 rounded-sm p-6 md:p-8">
+            <h3 className="text-xl md:text-2xl font-serif font-normal text-gray-900 mb-3">
+              Interested in this project?
+            </h3>
+            <p className="text-gray-600 mb-6 leading-relaxed">
+              Check out more of my work or get in touch to discuss potential collaborations.
             </p>
-            <div className="grid md:grid-cols-2 gap-6">
-              {project.relatedPosts.map((post: RelatedPost) => (
-                <Link 
-                  key={post._id} 
-                  href={`/writings/${post.slug}`} 
-                  className="group block p-6 bg-white border border-gray-200 hover:border-gray-900 rounded-sm transition-all"
-                >
-                  <h3 className="text-xl font-serif font-normal text-gray-900 mb-3 group-hover:text-gray-600 transition-colors">
-                    {post.title}
-                  </h3>
-                  {post.overview && (
-                    <p className="text-sm text-gray-600 mb-4 leading-relaxed line-clamp-2">
-                      {post.overview}
-                    </p>
-                  )}
-                  <div className="flex items-center text-sm text-gray-900 group-hover:gap-3 transition-all">
-                    Read article
-                    <ArrowRight size={16} className="ml-2" />
-                  </div>
-                </Link>
-              ))}
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Link 
+                href="/projectsArchive"
+                className="px-6 py-3 bg-gray-900 hover:bg-gray-700 text-white rounded-md text-center transition-all"
+              >
+                View More Projects
+              </Link>
+              <Link
+                href="/contact"
+                className="px-6 py-3 bg-white hover:bg-gray-50 text-gray-900 border border-gray-300 rounded-md text-center transition-all"
+              >
+                Get in Touch
+              </Link>
             </div>
-          </section>
-        )}
+          </div>
+        </div>
       </main>
 
       {/* FOOTER */}
-      <footer className="border-t border-gray-200 py-12 mt-20">
+      <footer className="border-t border-gray-200 py-12 bg-white">
         <div className="max-w-7xl mx-auto px-6">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <div className="text-center md:text-left">
@@ -337,6 +351,12 @@ export default async function ProjectDetailPage({
                 © {new Date().getFullYear()} · Built with Next.js & Sanity
               </p>
             </div>
+            <Link 
+              href="/projectsArchive"
+              className="text-sm text-gray-600 hover:text-gray-900 underline"
+            >
+              Back to all projects
+            </Link>
           </div>
         </div>
       </footer>
