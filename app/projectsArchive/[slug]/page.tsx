@@ -25,6 +25,7 @@ function urlFor(source: SanityImageSource) {
 
 // --- Interfaces ---
 interface Project {
+  _id: string; // Added _id for related query
   title: string;
   overview: string;
   category: string;
@@ -48,33 +49,39 @@ interface RelatedArticle {
   title: string;
   slug: string;
   description: string;
-  category: string;
-  time: string;
+  tags: string[];
+  publishedAt: string;
 }
 
 // --- Data Fetching ---
 async function getProjectData(slug: string) {
   if (!slug) return null;
 
-  const projectQuery = `*[_type == "project" && slug.current == $slug][0] {
-    title, overview, category, tags, body, githubLink, demoLink, 
-    problem, solution, features, technicalHighlights,
-    images[] { _key, asset, caption }
-  }`;
+  // 1. Fetch project ID and data first
+  const project = await client.fetch(
+    `*[_type == "project" && slug.current == $slug][0] {
+      _id, title, overview, category, tags, body, githubLink, demoLink, 
+      problem, solution, features, technicalHighlights,
+      images[] { _key, asset, caption }
+    }`,
+    { slug }
+  );
 
-  const articlesQuery = `*[_type == "post"] | order(_createdAt desc)[0..1] {
-    _id,
-    title,
-    "slug": slug.current,
-    "description": overview, 
-    "category": categories[0]->title, 
-    "time": "5 min read" 
-  }`;
+  if (!project) return null;
 
-  const [project, relatedArticles] = await Promise.all([
-    client.fetch(projectQuery, { slug }),
-    client.fetch(articlesQuery)
-  ]);
+  // 2. Fetch ALL related articles (Learning Logs) referencing this project
+  // Removed [0..1] limit and added reference check
+  const relatedArticles = await client.fetch(
+    `*[_type == "post" && relatedProject._ref == $projectId] | order(publishedAt desc) {
+      _id,
+      title,
+      "slug": slug.current,
+      "description": overview, 
+      tags,
+      publishedAt
+    }`,
+    { projectId: project._id }
+  );
 
   return { project, relatedArticles };
 }
@@ -98,7 +105,6 @@ export default function ProjectPage({ params }: { params: Promise<{ slug: string
     });
   }, [resolvedParams.slug]);
 
-  // Handle Escape key for modal
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setIsModalOpen(false);
@@ -129,40 +135,25 @@ export default function ProjectPage({ params }: { params: Promise<{ slug: string
             <Link href="/" className="text-xl font-semibold text-gray-900 hover:text-gray-700 transition-colors z-[70]">
               Shejal Tiwari
             </Link>
-            
-            {/* Desktop Navigation */}
             <div className="hidden md:flex gap-8 items-center">
               <Link href="/projectsArchive" className="text-gray-600 hover:text-gray-900 transition-colors text-sm">Projects</Link>
               <Link href="/writings" className="text-gray-600 hover:text-gray-900 transition-colors text-sm">Writings</Link>
               <a href="/Shejal_Tiwari_Resume.pdf" target="_blank" className="text-gray-600 hover:text-gray-900 transition-colors text-sm">Resume</a>
               <Link href="/contact" className="px-5 py-2 bg-gray-900 hover:bg-gray-700 text-white rounded-md text-sm transition-colors">Contact</Link>
             </div>
-
-            {/* Mobile Menu Button */}
-            <button 
-              className="md:hidden text-gray-900 z-[70]" 
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            >
+            <button className="md:hidden text-gray-900 z-[70]" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
               {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
           </div>
         </div>
 
-        {/* Mobile Navigation Dropdown - FIX FOR 3 LINES NOT WORKING */}
+        {/* MOBILE MENU OVERLAY */}
         {isMobileMenuOpen && (
           <div className="fixed top-0 left-0 w-full h-screen bg-white flex flex-col justify-center items-center gap-8 md:hidden z-[65]">
-            <Link href="/projectsArchive" onClick={() => setIsMobileMenuOpen(false)} className="text-2xl text-gray-900 font-serif">
-              Projects
-            </Link>
-            <Link href="/writings" onClick={() => setIsMobileMenuOpen(false)} className="text-2xl text-gray-900 font-serif">
-              Writings
-            </Link>
-            <a href="/Shejal_Tiwari_Resume.pdf" target="_blank" rel="noopener noreferrer" onClick={() => setIsMobileMenuOpen(false)} className="text-2xl text-gray-900 font-serif">
-              Resume
-            </a>
-            <Link href="/contact" onClick={() => setIsMobileMenuOpen(false)} className="text-2xl text-gray-900 font-serif">
-              Contact
-            </Link>
+            <Link href="/projectsArchive" onClick={() => setIsMobileMenuOpen(false)} className="text-2xl text-gray-900 font-serif">Projects</Link>
+            <Link href="/writings" onClick={() => setIsMobileMenuOpen(false)} className="text-2xl text-gray-900 font-serif">Writings</Link>
+            <a href="/Shejal_Tiwari_Resume.pdf" target="_blank" rel="noopener noreferrer" onClick={() => setIsMobileMenuOpen(false)} className="text-2xl text-gray-900 font-serif">Resume</a>
+            <Link href="/contact" onClick={() => setIsMobileMenuOpen(false)} className="text-2xl text-gray-900 font-serif">Contact</Link>
           </div>
         )}
       </nav>
@@ -173,7 +164,7 @@ export default function ProjectPage({ params }: { params: Promise<{ slug: string
           Back to Projects
         </Link>
 
-        {/* HERO SECTION */}
+        {/* HEADER SECTION */}
         <header className="max-w-4xl mb-16">
           <div className="inline-block px-3 py-1 bg-gray-900 rounded-full mb-6 font-sans">
             <span className="text-[10px] text-white uppercase tracking-widest font-bold px-1">{project.category}</span>
@@ -194,7 +185,7 @@ export default function ProjectPage({ params }: { params: Promise<{ slug: string
           </div>
         </header>
 
-        {/* IMAGE SWAPPER */}
+        {/* IMAGE SLIDER */}
         {project.images && project.images.length > 0 && (
           <section className="mb-20">
             <Swiper modules={[Navigation, Pagination]} spaceBetween={20} slidesPerView={1} navigation={true} pagination={{ clickable: true }} className="rounded-sm border border-gray-200 overflow-hidden">
@@ -265,13 +256,13 @@ export default function ProjectPage({ params }: { params: Promise<{ slug: string
           </article>
         )}
 
-        {/* RELATED WRITINGS */}
+        {/* RELATED WRITINGS - Fetching ALL related articles */}
         {relatedArticles.length > 0 && (
           <section className="mt-20 pt-20 border-t border-gray-200">
             <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 md:mb-12 gap-4">
               <div>
-                <h3 className="text-3xl md:text-4xl font-serif font-normal text-gray-900 mb-2">Related Writings</h3>
-                <p className="text-base text-gray-600 font-serif">Explore more insights and deep dives into AI/ML concepts</p>
+                <h3 className="text-3xl md:text-4xl font-serif font-normal text-gray-900 mb-2">Related Learning Logs</h3>
+                <p className="text-base text-gray-600 font-serif">Step-by-step documentation for this project</p>
               </div>
               <Link href="/writings" className="text-gray-900 hover:text-gray-600 flex items-center gap-2 group border-b border-gray-900 w-fit font-sans text-sm">
                 View all articles
@@ -282,11 +273,9 @@ export default function ProjectPage({ params }: { params: Promise<{ slug: string
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-20">
               {relatedArticles.map((article) => (
                 <Link key={article._id} href={`/writing/${article.slug}`} className="group block">
-                  <div className="border-b border-gray-200 pb-6">
+                  <div className="border-b border-gray-200 pb-6 h-full">
                     <div className="flex items-center gap-2 text-sm text-gray-500 mb-3 font-sans">
-                      <span>{article.time}</span>
-                      <span>·</span>
-                      <span>{article.category}</span>
+                      <span>{article.tags?.[0] || 'Tutorial'}</span>
                     </div>
                     <h4 className="text-xl md:text-2xl font-serif font-normal text-gray-900 mb-3 group-hover:text-gray-600 transition-colors">
                       {article.title}
@@ -295,7 +284,7 @@ export default function ProjectPage({ params }: { params: Promise<{ slug: string
                       {article.description}
                     </p>
                     <div className="flex items-center gap-2 text-gray-900 text-sm group-hover:gap-3 transition-all font-sans font-medium">
-                      Read more
+                      Read Log
                       <ArrowRight className="w-4 h-4" />
                     </div>
                   </div>
@@ -316,54 +305,16 @@ export default function ProjectPage({ params }: { params: Promise<{ slug: string
         </section>
       </main>
 
-      {/* MODAL - FIX FOR CROSS BUTTON NOT WORKING */}
+      {/* MODAL */}
       {isModalOpen && project.images && (
-        <div 
-          className="fixed inset-0 z-[1000] bg-black/95 flex flex-col items-center justify-center p-4" 
-          onClick={() => setIsModalOpen(false)}
-        >
-          {/* Close button with high z-index and stopPropagation */}
-          <button 
-            onClick={(e) => { 
-              e.stopPropagation(); 
-              setIsModalOpen(false); 
-            }} 
-            className="absolute top-6 right-6 z-[1010] text-white/70 hover:text-white transition-colors p-2"
-          >
-            <X size={36} />
-          </button>
-          
+        <div className="fixed inset-0 z-[1000] bg-black/95 flex flex-col items-center justify-center p-4" onClick={() => setIsModalOpen(false)}>
+          <button onClick={(e) => { e.stopPropagation(); setIsModalOpen(false); }} className="absolute top-6 right-6 z-[1010] text-white/70 hover:text-white transition-colors"><X size={36} /></button>
           <div className="relative w-full h-full flex items-center justify-center group">
-            <button 
-              className="absolute left-0 md:left-4 z-[1010] p-4 text-white/30 hover:text-white transition-all" 
-              onClick={(e) => { 
-                e.stopPropagation(); 
-                setCurrentIndex((currentIndex + project.images!.length - 1) % project.images!.length); 
-              }}
-            >
-              <ChevronLeft size={48} />
-            </button>
-            <div 
-              className="relative w-full h-full max-w-6xl max-h-[85vh]" 
-              onClick={(e) => e.stopPropagation()}
-            >
-              <Image src={urlFor(project.images[currentIndex]).width(1800).url()} alt="Fullscreen focus" fill className="object-contain" />
-            </div>
-            <button 
-              className="absolute right-0 md:right-4 z-[1010] p-4 text-white/30 hover:text-white transition-all" 
-              onClick={(e) => { 
-                e.stopPropagation(); 
-                setCurrentIndex((currentIndex + 1) % project.images!.length); 
-              }}
-            >
-              <ChevronRight size={48} />
-            </button>
+            <button className="absolute left-0 md:left-4 z-[1010] p-4 text-white/30 hover:text-white transition-all" onClick={(e) => { e.stopPropagation(); setCurrentIndex((currentIndex + project.images!.length - 1) % project.images!.length); }}><ChevronLeft size={48} /> </button>
+            <div className="relative w-full h-full max-w-6xl max-h-[85vh]" onClick={(e) => e.stopPropagation()}><Image src={urlFor(project.images[currentIndex]).width(1800).url()} alt="Fullscreen focus" fill className="object-contain" /></div>
+            <button className="absolute right-0 md:right-4 z-[1010] p-4 text-white/30 hover:text-white transition-all" onClick={(e) => { e.stopPropagation(); setCurrentIndex((currentIndex + 1) % project.images!.length); }}><ChevronRight size={48} /></button>
           </div>
-          {project.images[currentIndex].caption && (
-            <p className="mt-4 text-white/80 font-serif italic text-lg z-[1010]" onClick={(e) => e.stopPropagation()}>
-              {project.images[currentIndex].caption}
-            </p>
-          )}
+          {project.images[currentIndex].caption && <p className="mt-4 text-white/80 font-serif italic text-lg z-[1010]" onClick={(e) => e.stopPropagation()}>{project.images[currentIndex].caption}</p>}
         </div>
       )}
 
