@@ -1,5 +1,4 @@
 // app/projectsArchive/[slug]/page.tsx
-// This is the ONLY file you need to update if you deleted app/blog/[slug]
 
 import React from 'react';
 import Link from 'next/link';
@@ -211,27 +210,24 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
 
       {/* PROJECT HEADER */}
       <header className="max-w-4xl mx-auto px-6 pt-12 md:pt-20 pb-8 md:pb-12">
-        {/* Category Badge */}
         <div className="mb-6">
           <span className="inline-block px-3 py-1 bg-gray-900 text-white text-xs uppercase tracking-wide rounded-full">
             {project.category}
           </span>
         </div>
 
-        {/* Title */}
         <h1 className="text-4xl md:text-5xl lg:text-6xl font-semibold text-gray-900 mb-6 leading-tight">
           {project.title}
         </h1>
 
-        {/* Overview */}
         <p className="text-lg md:text-xl text-gray-600 leading-relaxed mb-8 font-normal">
           {project.overview}
         </p>
 
-        {/* Tags */}
         {project.tags && project.tags.length > 0 && (
           <div className="flex flex-wrap gap-2 mb-8">
-            {project.tags.map((tag) => (
+            {/* Added type definition for tag string */}
+            {project.tags.map((tag: string) => (
               <span 
                 key={tag} 
                 className="px-3 py-1.5 bg-gray-100 border border-gray-200 text-gray-700 rounded-full text-sm"
@@ -242,7 +238,6 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
           </div>
         )}
 
-        {/* Links */}
         <div className="flex flex-wrap gap-3">
           {project.projectUrl && (
             <a
@@ -272,7 +267,8 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
       {/* HERO IMAGE */}
       {project.image && (
         <div className="max-w-5xl mx-auto px-6 mb-12 md:mb-16">
-          <div className="relative w-full aspect-video rounded-sm overflow-hidden bg-gray-100">
+          {/* Changed aspect-video to aspect-16/10 for Tailwind best practices */}
+          <div className="relative w-full aspect-16/10 rounded-sm overflow-hidden bg-gray-100">
             <Image
               src={urlFor(project.image).width(1200).url()}
               alt={project.image.alt || project.title}
@@ -294,16 +290,15 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
           />
         </article>
 
-        {/* PROJECT FOOTER */}
         <div className="mt-16 pt-12 border-t border-gray-200">
-          {/* Tags Repeat */}
           {project.tags && project.tags.length > 0 && (
             <div className="mb-8">
               <h3 className="text-sm font-semibold text-gray-900 mb-3 uppercase tracking-wide">
                 Technologies
               </h3>
               <div className="flex flex-wrap gap-2">
-                {project.tags.map((tag) => (
+                {/* Added type definition for tag string */}
+                {project.tags.map((tag: string) => (
                   <span
                     key={tag}
                     className="px-3 py-1.5 bg-gray-100 border border-gray-200 text-gray-700 rounded-full text-sm"
@@ -315,7 +310,6 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
             </div>
           )}
 
-          {/* CTA */}
           <div className="bg-gray-50 border border-gray-200 rounded-sm p-6 md:p-8">
             <h3 className="text-xl md:text-2xl font-serif font-normal text-gray-900 mb-3">
               Interested in this project?
@@ -341,7 +335,6 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
         </div>
       </main>
 
-      {/* FOOTER */}
       <footer className="border-t border-gray-200 py-12 bg-white">
         <div className="max-w-7xl mx-auto px-6">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">

@@ -69,7 +69,7 @@ const portableTextComponents = {
       if (!value?.asset?._ref) return null;
       return (
         <figure className="my-8 md:my-12">
-          <div className="relative w-full aspect-video md:aspect-[16/10] rounded-sm overflow-hidden bg-gray-100">
+          <div className="relative w-full aspect-video md:aspect-16/10 rounded-sm overflow-hidden bg-gray-100">
             <Image
               src={urlFor(value).width(1200).url()}
               alt={value.alt || 'Article image'}
@@ -169,16 +169,19 @@ const portableTextComponents = {
 };
 
 // --- Metadata ---
-export async function generateMetadata({ params }: { params: { slug: string } }) {
-  const post = await getPost(params.slug);
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const post = await getPost(slug);
   return {
     title: `${post?.title || 'Article'} | Shejal Tiwari`,
     description: post?.overview,
   };
 }
 
-export default async function BlogPostPage({ params }: { params: { slug: string } }) {
-  const post: Post = await getPost(params.slug);
+// --- Page Component ---
+export default async function BlogPostPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const post: Post = await getPost(slug);
 
   if (!post) {
     return (
@@ -221,7 +224,6 @@ export default async function BlogPostPage({ params }: { params: { slug: string 
 
       {/* ARTICLE HEADER */}
       <header className="max-w-4xl mx-auto px-6 pt-12 md:pt-20 pb-8 md:pb-12">
-        {/* Meta Info */}
         <div className="flex flex-wrap gap-3 items-center mb-6 text-sm text-gray-600">
           <span className="flex items-center gap-1.5">
             <Calendar size={14} />
@@ -249,20 +251,17 @@ export default async function BlogPostPage({ params }: { params: { slug: string 
           )}
         </div>
 
-        {/* Title */}
         <h1 className="text-4xl md:text-5xl lg:text-6xl font-semibold text-gray-900 mb-6 leading-tight">
           {post.title}
         </h1>
 
-        {/* Overview */}
         <p className="text-lg md:text-xl text-gray-600 leading-relaxed mb-8 font-normal">
           {post.overview}
         </p>
 
-        {/* Tags */}
         {post.tags && post.tags.length > 0 && (
           <div className="flex flex-wrap gap-2">
-            {post.tags.map((tag) => (
+            {post.tags.map((tag: string) => (
               <span 
                 key={tag} 
                 className="px-3 py-1.5 bg-gray-100 border border-gray-200 text-gray-700 rounded-full text-sm"
@@ -274,7 +273,7 @@ export default async function BlogPostPage({ params }: { params: { slug: string 
         )}
       </header>
 
-      {/* HERO IMAGE */}
+      {/* RELATED PROJECT CARD */}
       {post.relatedProject && (
         <div className="max-w-4xl mx-auto px-6 mb-12 md:mb-16">
           <div className="bg-gray-50 border border-gray-200 rounded-sm p-6 md:p-8">
@@ -311,16 +310,14 @@ export default async function BlogPostPage({ params }: { params: { slug: string 
           />
         </article>
 
-        {/* ARTICLE FOOTER */}
         <div className="mt-16 pt-12 border-t border-gray-200">
-          {/* Tags Repeat */}
           {post.tags && post.tags.length > 0 && (
             <div className="mb-8">
               <h3 className="text-sm font-semibold text-gray-900 mb-3 uppercase tracking-wide">
                 Topics
               </h3>
               <div className="flex flex-wrap gap-2">
-                {post.tags.map((tag) => (
+                {post.tags.map((tag: string) => (
                   <Link
                     key={tag}
                     href={`/writings?tag=${tag}`}
@@ -333,7 +330,6 @@ export default async function BlogPostPage({ params }: { params: { slug: string 
             </div>
           )}
 
-          {/* CTA */}
           <div className="bg-gray-50 border border-gray-200 rounded-sm p-6 md:p-8">
             <h3 className="text-xl md:text-2xl font-serif font-normal text-gray-900 mb-3">
               Thanks for reading!
