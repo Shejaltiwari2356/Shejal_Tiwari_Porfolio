@@ -160,11 +160,11 @@ export default function Home() {
               Read My Articles
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </Link>
-            <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="px-6 py-3 bg-white hover:bg-gray-50 text-gray-900 border border-gray-300 rounded-md transition-all flex items-center justify-center gap-2">
+            <a href="https://www.linkedin.com/in/shejal-tiwari-a0736a256/" target="_blank" rel="noopener noreferrer" className="px-6 py-3 bg-white hover:bg-gray-50 text-gray-900 border border-gray-300 rounded-md transition-all flex items-center justify-center gap-2">
               <Linkedin className="w-5 h-5" />
               LinkedIn
             </a>
-            <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="px-6 py-3 bg-white hover:bg-gray-50 text-gray-900 border border-gray-300 rounded-md transition-all flex items-center justify-center gap-2">
+            <a href="https://github.com/Shejaltiwari2356" target="_blank" rel="noopener noreferrer" className="px-6 py-3 bg-white hover:bg-gray-50 text-gray-900 border border-gray-300 rounded-md transition-all flex items-center justify-center gap-2">
               <Github className="w-5 h-5" />
               GitHub
             </a>

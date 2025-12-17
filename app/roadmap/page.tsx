@@ -468,10 +468,10 @@ export default function RoadmapPage() {
               </p>
             </div>
             <div className="flex gap-4">
-              <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="w-10 h-10 flex items-center justify-center border border-gray-300 hover:border-gray-900 text-gray-600 hover:text-gray-900 rounded-full transition-all">
+              <a href="https://www.linkedin.com/in/shejal-tiwari-a0736a256/" target="_blank" rel="noopener noreferrer" className="w-10 h-10 flex items-center justify-center border border-gray-300 hover:border-gray-900 text-gray-600 hover:text-gray-900 rounded-full transition-all">
                 <Linkedin className="w-5 h-5" />
               </a>
-              <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="w-10 h-10 flex items-center justify-center border border-gray-300 hover:border-gray-900 text-gray-600 hover:text-gray-900 rounded-full transition-all">
+              <a href="https://github.com/Shejaltiwari2356" target="_blank" rel="noopener noreferrer" className="w-10 h-10 flex items-center justify-center border border-gray-300 hover:border-gray-900 text-gray-600 hover:text-gray-900 rounded-full transition-all">
                 <Github className="w-5 h-5" />
               </a>
             </div>

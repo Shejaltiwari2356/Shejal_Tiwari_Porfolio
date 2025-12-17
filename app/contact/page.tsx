@@ -260,7 +260,7 @@ export default function ContactPage() {
               </h2>
               <div className="space-y-3">
                 <a 
-                  href="https://linkedin.com"
+                  href="https://www.linkedin.com/in/shejal-tiwari-a0736a256/"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center justify-between p-4 bg-white hover:bg-gray-50 border border-gray-200 hover:border-gray-900 rounded-md transition-all group"
@@ -273,7 +273,7 @@ export default function ContactPage() {
                 </a>
 
                 <a 
-                  href="https://github.com"
+                  href="https://github.com/Shejaltiwari2356"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center justify-between p-4 bg-white hover:bg-gray-50 border border-gray-200 hover:border-gray-900 rounded-md transition-all group"
