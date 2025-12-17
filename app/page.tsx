@@ -230,7 +230,7 @@ export default function Home() {
              <div className="text-gray-400">Loading articles...</div>
           ) : writings.length > 0 ? (
             writings.map((article: Article) => (
-              <Link key={article._id} href={`/writings/${article.slug}`} className="group block">
+              <Link key={article._id} href={`/writing/${article.slug}`} className="group block">
                 <div className="border-b border-gray-200 pb-6">
                   <div className="flex items-center gap-2 text-sm text-gray-500 mb-3">
                     <span>{article.time || '5 min read'}</span>
