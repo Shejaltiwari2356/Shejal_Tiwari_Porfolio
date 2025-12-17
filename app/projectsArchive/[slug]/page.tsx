@@ -56,14 +56,12 @@ interface RelatedArticle {
 async function getProjectData(slug: string) {
   if (!slug) return null;
 
-  // Query for the Project
   const projectQuery = `*[_type == "project" && slug.current == $slug][0] {
     title, overview, category, tags, body, githubLink, demoLink, 
     problem, solution, features, technicalHighlights,
     images[] { _key, asset, caption }
   }`;
 
-  // Query for Related Articles (matches homepage style)
   const articlesQuery = `*[_type == "post"] | order(_createdAt desc)[0..1] {
     _id,
     title,
@@ -100,6 +98,7 @@ export default function ProjectPage({ params }: { params: Promise<{ slug: string
     });
   }, [resolvedParams.slug]);
 
+  // Handle Escape key for modal
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setIsModalOpen(false);
@@ -124,23 +123,48 @@ export default function ProjectPage({ params }: { params: Promise<{ slug: string
   return (
     <div className="min-h-screen bg-white">
       {/* NAVBAR */}
-      <nav className="sticky top-0 z-50 bg-white border-b border-gray-200 font-sans">
+      <nav className="sticky top-0 z-[60] bg-white border-b border-gray-200 font-sans">
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex justify-between items-center">
-            <Link href="/" className="text-xl font-semibold text-gray-900 hover:text-gray-700 transition-colors">
+            <Link href="/" className="text-xl font-semibold text-gray-900 hover:text-gray-700 transition-colors z-[70]">
               Shejal Tiwari
             </Link>
+            
+            {/* Desktop Navigation */}
             <div className="hidden md:flex gap-8 items-center">
               <Link href="/projectsArchive" className="text-gray-600 hover:text-gray-900 transition-colors text-sm">Projects</Link>
               <Link href="/writings" className="text-gray-600 hover:text-gray-900 transition-colors text-sm">Writings</Link>
               <a href="/Shejal_Tiwari_Resume.pdf" target="_blank" className="text-gray-600 hover:text-gray-900 transition-colors text-sm">Resume</a>
               <Link href="/contact" className="px-5 py-2 bg-gray-900 hover:bg-gray-700 text-white rounded-md text-sm transition-colors">Contact</Link>
             </div>
-            <button className="md:hidden text-gray-900" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
+
+            {/* Mobile Menu Button */}
+            <button 
+              className="md:hidden text-gray-900 z-[70]" 
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            >
               {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
           </div>
         </div>
+
+        {/* Mobile Navigation Dropdown - FIX FOR 3 LINES NOT WORKING */}
+        {isMobileMenuOpen && (
+          <div className="fixed top-0 left-0 w-full h-screen bg-white flex flex-col justify-center items-center gap-8 md:hidden z-[65]">
+            <Link href="/projectsArchive" onClick={() => setIsMobileMenuOpen(false)} className="text-2xl text-gray-900 font-serif">
+              Projects
+            </Link>
+            <Link href="/writings" onClick={() => setIsMobileMenuOpen(false)} className="text-2xl text-gray-900 font-serif">
+              Writings
+            </Link>
+            <a href="/Shejal_Tiwari_Resume.pdf" target="_blank" rel="noopener noreferrer" onClick={() => setIsMobileMenuOpen(false)} className="text-2xl text-gray-900 font-serif">
+              Resume
+            </a>
+            <Link href="/contact" onClick={() => setIsMobileMenuOpen(false)} className="text-2xl text-gray-900 font-serif">
+              Contact
+            </Link>
+          </div>
+        )}
       </nav>
 
       <main className="max-w-7xl mx-auto px-6 py-12 md:py-16">
@@ -227,7 +251,7 @@ export default function ProjectPage({ params }: { params: Promise<{ slug: string
               <h3 className="text-xl font-serif font-normal text-gray-900 mb-6 flex items-center gap-3"><Laptop size={20} /> Tech Highlights</h3>
               <ul className="space-y-4 font-sans text-sm">
                 {project.technicalHighlights.map((high, i) => (
-                  <li key={i} className="flex items-start gap-4 text-gray-600 leading-relaxed"><span className="mt-2 h-1.5 w-1.5 rounded-full bg-gray-300 shrink-0" /> {high}</li>
+                  <li key={i} className="flex items-start gap-4 text-gray-600 leading-relaxed"><span className="mt-2 h-1.5 w-1.5 rounded-full bg-gray-900 shrink-0" /> {high}</li>
                 ))}
               </ul>
             </div>
@@ -241,7 +265,7 @@ export default function ProjectPage({ params }: { params: Promise<{ slug: string
           </article>
         )}
 
-        {/* RELATED WRITINGS (Homepage style implementation) */}
+        {/* RELATED WRITINGS */}
         {relatedArticles.length > 0 && (
           <section className="mt-20 pt-20 border-t border-gray-200">
             <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 md:mb-12 gap-4">
@@ -292,16 +316,54 @@ export default function ProjectPage({ params }: { params: Promise<{ slug: string
         </section>
       </main>
 
-      {/* MODAL */}
+      {/* MODAL - FIX FOR CROSS BUTTON NOT WORKING */}
       {isModalOpen && project.images && (
-        <div className="fixed inset-0 z-[1000] bg-black/95 flex flex-col items-center justify-center p-4" onClick={() => setIsModalOpen(false)}>
-          <button onClick={(e) => { e.stopPropagation(); setIsModalOpen(false); }} className="absolute top-6 right-6 z-[1010] text-white/70 hover:text-white transition-colors"><X size={36} /></button>
+        <div 
+          className="fixed inset-0 z-[1000] bg-black/95 flex flex-col items-center justify-center p-4" 
+          onClick={() => setIsModalOpen(false)}
+        >
+          {/* Close button with high z-index and stopPropagation */}
+          <button 
+            onClick={(e) => { 
+              e.stopPropagation(); 
+              setIsModalOpen(false); 
+            }} 
+            className="absolute top-6 right-6 z-[1010] text-white/70 hover:text-white transition-colors p-2"
+          >
+            <X size={36} />
+          </button>
+          
           <div className="relative w-full h-full flex items-center justify-center group">
-            <button className="absolute left-0 md:left-4 z-[1010] p-4 text-white/30 hover:text-white transition-all" onClick={(e) => { e.stopPropagation(); setCurrentIndex((currentIndex + project.images!.length - 1) % project.images!.length); }}><ChevronLeft size={48} /></button>
-            <div className="relative w-full h-full max-w-6xl max-h-[85vh]" onClick={(e) => e.stopPropagation()}><Image src={urlFor(project.images[currentIndex]).width(1800).url()} alt="Fullscreen view" fill className="object-contain" /></div>
-            <button className="absolute right-0 md:right-4 z-[1010] p-4 text-white/30 hover:text-white transition-all" onClick={(e) => { e.stopPropagation(); setCurrentIndex((currentIndex + 1) % project.images!.length); }}><ChevronRight size={48} /></button>
+            <button 
+              className="absolute left-0 md:left-4 z-[1010] p-4 text-white/30 hover:text-white transition-all" 
+              onClick={(e) => { 
+                e.stopPropagation(); 
+                setCurrentIndex((currentIndex + project.images!.length - 1) % project.images!.length); 
+              }}
+            >
+              <ChevronLeft size={48} />
+            </button>
+            <div 
+              className="relative w-full h-full max-w-6xl max-h-[85vh]" 
+              onClick={(e) => e.stopPropagation()}
+            >
+              <Image src={urlFor(project.images[currentIndex]).width(1800).url()} alt="Fullscreen focus" fill className="object-contain" />
+            </div>
+            <button 
+              className="absolute right-0 md:right-4 z-[1010] p-4 text-white/30 hover:text-white transition-all" 
+              onClick={(e) => { 
+                e.stopPropagation(); 
+                setCurrentIndex((currentIndex + 1) % project.images!.length); 
+              }}
+            >
+              <ChevronRight size={48} />
+            </button>
           </div>
-          {project.images[currentIndex].caption && <p className="mt-4 text-white/80 font-serif italic text-lg z-[1010]" onClick={(e) => e.stopPropagation()}>{project.images[currentIndex].caption}</p>}
+          {project.images[currentIndex].caption && (
+            <p className="mt-4 text-white/80 font-serif italic text-lg z-[1010]" onClick={(e) => e.stopPropagation()}>
+              {project.images[currentIndex].caption}
+            </p>
+          )}
         </div>
       )}
 
