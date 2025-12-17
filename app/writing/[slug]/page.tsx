@@ -1,15 +1,16 @@
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ArrowLeft, Calendar, Clock, Bookmark } from 'lucide-react';
+import { ArrowLeft, Calendar, Clock } from 'lucide-react';
 import { client } from '@/sanity/lib/client';
 import { PortableText } from '@portabletext/react';
 import { PortableTextBlock } from 'sanity';
 import imageUrlBuilder from '@sanity/image-url';
+import { SanityImageSource } from '@sanity/image-url/lib/types/types';
 
 // --- Image URL Builder ---
 const builder = imageUrlBuilder(client);
-function urlFor(source: any) {
+function urlFor(source: SanityImageSource) {
   return builder.image(source);
 }
 
@@ -26,6 +27,21 @@ interface Post {
     category: string;
   };
   readingTime?: string;
+}
+
+interface PortableTextImage {
+  asset?: {
+    _ref?: string;
+  };
+  alt?: string;
+  caption?: string;
+}
+
+interface PortableTextValue {
+  body?: string;
+  code?: string;
+  href?: string;
+  blank?: boolean;
 }
 
 // --- Fetch Data ---
@@ -49,7 +65,7 @@ async function getPost(slug: string) {
 // --- Custom Portable Text Components ---
 const portableTextComponents = {
   types: {
-    image: ({ value }: any) => {
+    image: ({ value }: { value: PortableTextImage }) => {
       if (!value?.asset?._ref) return null;
       return (
         <figure className="my-8 md:my-12">
@@ -70,15 +86,14 @@ const portableTextComponents = {
         </figure>
       );
     },
-    latex: ({ value }: any) => {
-      // LaTeX rendering - you'll need to add a library like react-katex or mathjax
+    latex: ({ value }: { value: PortableTextValue }) => {
       return (
         <div className="my-6 p-6 bg-gray-50 border border-gray-200 rounded-sm overflow-x-auto">
           <code className="text-sm font-mono text-gray-800">{value.body}</code>
         </div>
       );
     },
-    code: ({ value }: any) => {
+    code: ({ value }: { value: PortableTextValue }) => {
       return (
         <pre className="bg-gray-900 text-gray-100 p-6 rounded-sm overflow-x-auto my-6">
           <code className="text-sm font-mono">{value.code}</code>
@@ -87,65 +102,65 @@ const portableTextComponents = {
     },
   },
   block: {
-    h2: ({ children }: any) => (
+    h2: ({ children }: { children?: React.ReactNode }) => (
       <h2 className="text-2xl md:text-3xl font-semibold text-gray-900 mt-12 mb-4 leading-tight">
         {children}
       </h2>
     ),
-    h3: ({ children }: any) => (
+    h3: ({ children }: { children?: React.ReactNode }) => (
       <h3 className="text-xl md:text-2xl font-semibold text-gray-900 mt-10 mb-3 leading-tight">
         {children}
       </h3>
     ),
-    h4: ({ children }: any) => (
+    h4: ({ children }: { children?: React.ReactNode }) => (
       <h4 className="text-lg md:text-xl font-semibold text-gray-900 mt-8 mb-2 leading-tight">
         {children}
       </h4>
     ),
-    normal: ({ children }: any) => (
+    normal: ({ children }: { children?: React.ReactNode }) => (
       <p className="text-base md:text-lg text-gray-700 leading-relaxed mb-6 font-normal">
         {children}
       </p>
     ),
-    blockquote: ({ children }: any) => (
+    blockquote: ({ children }: { children?: React.ReactNode }) => (
       <blockquote className="border-l-4 border-gray-900 pl-6 my-8 text-gray-700 font-normal">
         {children}
       </blockquote>
     ),
   },
   list: {
-    bullet: ({ children }: any) => (
+    bullet: ({ children }: { children?: React.ReactNode }) => (
       <ul className="list-disc list-outside ml-6 my-6 space-y-2 text-gray-700">
         {children}
       </ul>
     ),
-    number: ({ children }: any) => (
+    number: ({ children }: { children?: React.ReactNode }) => (
       <ol className="list-decimal list-outside ml-6 my-6 space-y-2 text-gray-700">
         {children}
       </ol>
     ),
   },
   marks: {
-    link: ({ children, value }: any) => {
-      const rel = !value.href.startsWith('/') ? 'noreferrer noopener' : undefined;
+    link: ({ children, value }: { children?: React.ReactNode; value?: PortableTextValue }) => {
+      const rel = !value?.href?.startsWith('/') ? 'noreferrer noopener' : undefined;
       return (
         <a
-          href={value.href}
+          href={value?.href}
           rel={rel}
-          target={value.blank ? '_blank' : undefined}
+          target={value?.blank ? '_blank' : undefined}
           className="text-gray-900 underline decoration-gray-300 hover:decoration-gray-900 transition-colors"
         >
           {children}
         </a>
       );
     },
-    strong: ({ children }: any) => (
+    strong: ({ children }: { children?: React.ReactNode }) => (
       <strong className="font-semibold text-gray-900">{children}</strong>
     ),
-    em: ({ children }: any) => (
+    em: ({ children }: { children?: React.ReactNode }) => (
       <em className="italic">{children}</em>
     ),
-    code: ({ children }: any) => (
+    code: ({ children }: { children?: React.ReactNode }) => (
       <code className="bg-gray-100 text-gray-900 px-1.5 py-0.5 rounded text-sm font-mono">
         {children}
       </code>
@@ -246,7 +261,7 @@ export default async function BlogPostPage({ params }: { params: { slug: string 
 
         {/* Tags */}
         {post.tags && post.tags.length > 0 && (
-          <div className="flex flex-wrap gap-2 mb-8">
+          <div className="flex flex-wrap gap-2">
             {post.tags.map((tag) => (
               <span 
                 key={tag} 
@@ -257,9 +272,6 @@ export default async function BlogPostPage({ params }: { params: { slug: string 
             ))}
           </div>
         )}
-
-        {/* Action Buttons */}
-        
       </header>
 
       {/* HERO IMAGE */}
