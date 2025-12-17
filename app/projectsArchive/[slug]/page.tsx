@@ -84,6 +84,15 @@ export default function ProjectPage({ params }: { params: Promise<{ slug: string
     });
   }, [resolvedParams.slug]);
 
+  // Handle Escape key to close modal
+  useEffect(() => {
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setIsModalOpen(false);
+    };
+    window.addEventListener('keydown', handleEsc);
+    return () => window.removeEventListener('keydown', handleEsc);
+  }, []);
+
   if (loading) return <div className="min-h-screen bg-white flex items-center justify-center font-serif text-gray-500">Loading case study...</div>;
 
   if (!project) return (
@@ -97,8 +106,8 @@ export default function ProjectPage({ params }: { params: Promise<{ slug: string
 
   return (
     <div className="min-h-screen bg-white">
-      {/* NAVBAR - Exact same font/style as your Homepage */}
-      <nav className="sticky top-0 z-50 bg-white border-b border-gray-200">
+      {/* NAVBAR */}
+      <nav className="sticky top-0 z-50 bg-white border-b border-gray-200 font-sans">
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex justify-between items-center">
             <Link href="/" className="text-xl font-semibold text-gray-900 hover:text-gray-700 transition-colors">
@@ -131,10 +140,10 @@ export default function ProjectPage({ params }: { params: Promise<{ slug: string
           Back to Projects
         </Link>
 
-        {/* HERO SECTION - Using your font-serif font-normal style */}
+        {/* HERO SECTION */}
         <header className="max-w-4xl mb-16">
-          <div className="inline-block px-3 py-1 bg-gray-900 rounded-full mb-6">
-            <span className="text-[10px] text-white uppercase tracking-widest font-sans font-bold px-1">
+          <div className="inline-block px-3 py-1 bg-gray-900 rounded-full mb-6 font-sans">
+            <span className="text-[10px] text-white uppercase tracking-widest font-bold px-1">
               {project.category}
             </span>
           </div>
@@ -161,7 +170,7 @@ export default function ProjectPage({ params }: { params: Promise<{ slug: string
           </div>
         </header>
 
-        {/* IMAGE SWAPPER (Slider) */}
+        {/* IMAGE SWAPPER */}
         {project.images && project.images.length > 0 && (
           <section className="mb-20">
             <Swiper
@@ -195,7 +204,7 @@ export default function ProjectPage({ params }: { params: Promise<{ slug: string
           </section>
         )}
 
-        {/* PROBLEM & SOLUTION GRID - font-serif italics matching your homepage blurb */}
+        {/* PROBLEM & SOLUTION */}
         {(project.problem || project.solution) && (
           <section className="grid md:grid-cols-2 gap-12 mb-20 py-12 border-y border-gray-200 font-serif">
             {project.problem && (
@@ -204,7 +213,7 @@ export default function ProjectPage({ params }: { params: Promise<{ slug: string
                   <Target size={18} />
                   <span className="text-[10px] uppercase tracking-widest font-bold">The Problem</span>
                 </div>
-                <p className="text-gray-900 text-lg leading-relaxed italic">
+                <p className="text-gray-900 text-lg leading-relaxed italic font-serif">
                   &ldquo;{project.problem}&rdquo;
                 </p>
               </div>
@@ -215,7 +224,7 @@ export default function ProjectPage({ params }: { params: Promise<{ slug: string
                   <Lightbulb size={18} />
                   <span className="text-[10px] uppercase tracking-widest font-bold">The Solution</span>
                 </div>
-                <p className="text-gray-900 text-lg leading-relaxed">
+                <p className="text-gray-900 text-lg leading-relaxed font-serif">
                   {project.solution}
                 </p>
               </div>
@@ -262,31 +271,31 @@ export default function ProjectPage({ params }: { params: Promise<{ slug: string
           </article>
         )}
 
-        {/* TECHNOLOGIES USED - Same style as your homepage tags */}
+        {/* TECHNOLOGIES */}
         <section className="mb-20">
-          <h4 className="text-[10px] text-gray-400 uppercase tracking-[0.3em] mb-8 text-center font-sans font-bold">
+          <h4 className="text-[10px] text-gray-400 uppercase tracking-[0.3em] mb-8 text-center font-sans font-bold font-sans">
             Technologies Used
           </h4>
           <div className="flex flex-wrap justify-center gap-2 font-sans">
             {project.tags.map((tag) => (
-              <span key={tag} className="px-4 py-1.5 bg-gray-50 border border-gray-100 rounded-full text-xs text-gray-700 font-medium hover:border-gray-900 transition-colors">
+              <span key={tag} className="px-4 py-1.5 bg-gray-50 border border-gray-100 rounded-full text-xs text-gray-700 font-medium font-sans">
                 {tag}
               </span>
             ))}
           </div>
         </section>
 
-        {/* CTA - Exact bg-gray-900 style from your homepage */}
-        <section className="bg-gray-900 rounded-sm p-8 md:p-12 text-center text-white">
+        {/* CTA */}
+        <section className="bg-gray-900 rounded-sm p-8 md:p-12 text-center text-white font-serif">
           <h3 className="text-3xl md:text-4xl font-serif font-normal mb-6">Interested in this project?</h3>
           <p className="text-gray-300 text-lg max-w-2xl mx-auto mb-10 leading-relaxed font-serif">
             Check out more of my work or get in touch to discuss potential collaborations.
           </p>
           <div className="flex flex-col md:flex-row justify-center gap-4 font-sans">
-            <Link href="/projectsArchive" className="px-8 py-3 bg-white text-gray-900 hover:bg-gray-100 rounded-sm font-medium transition-all text-sm">
+            <Link href="/projectsArchive" className="px-8 py-3 bg-white text-gray-900 hover:bg-gray-100 rounded-sm font-medium transition-all text-sm font-sans">
               View More Projects
             </Link>
-            <Link href="/contact" className="px-8 py-3 bg-transparent border border-white/30 hover:border-white text-white rounded-sm font-medium transition-all text-sm">
+            <Link href="/contact" className="px-8 py-3 bg-transparent border border-white/30 hover:border-white text-white rounded-sm font-medium transition-all text-sm font-sans">
               Get in Touch
             </Link>
           </div>
@@ -295,33 +304,72 @@ export default function ProjectPage({ params }: { params: Promise<{ slug: string
 
       {/* FULLSCREEN FOCUS MODAL */}
       {isModalOpen && project.images && (
-        <div className="fixed inset-0 z-[100] bg-black/95 flex flex-col items-center justify-center p-4">
-          <button onClick={() => setIsModalOpen(false)} className="absolute top-6 right-6 text-white/70 hover:text-white transition-colors">
-            <X size={32} />
+        <div 
+          className="fixed inset-0 z-[1000] bg-black/95 flex flex-col items-center justify-center p-4"
+          onClick={() => setIsModalOpen(false)}
+        >
+          {/* Close Button */}
+          <button 
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsModalOpen(false);
+            }} 
+            className="absolute top-6 right-6 z-[1010] text-white/70 hover:text-white transition-colors"
+          >
+            <X size={36} />
           </button>
-          <div className="relative w-full h-full flex items-center justify-center">
-            <button className="absolute left-0 md:left-4 p-4 text-white/30 hover:text-white transition-all" onClick={() => setCurrentIndex((currentIndex + project.images!.length - 1) % project.images!.length)}>
+          
+          <div className="relative w-full h-full flex items-center justify-center group">
+            {/* Previous */}
+            <button 
+              className="absolute left-0 md:left-4 z-[1010] p-4 text-white/50 hover:text-white transition-all" 
+              onClick={(e) => {
+                e.stopPropagation();
+                setCurrentIndex((currentIndex + project.images!.length - 1) % project.images!.length);
+              }}
+            >
               <ChevronLeft size={48} />
             </button>
-            <div className="relative w-full h-full max-w-6xl max-h-[85vh]">
-              <Image src={urlFor(project.images[currentIndex]).width(1800).url()} alt="Fullscreen view" fill className="object-contain" />
+
+            {/* Image Container */}
+            <div 
+              className="relative w-full h-full max-w-6xl max-h-[85vh]"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <Image 
+                src={urlFor(project.images[currentIndex]).width(1800).url()} 
+                alt="Fullscreen view" 
+                fill 
+                className="object-contain" 
+              />
             </div>
-            <button className="absolute right-0 md:right-4 p-4 text-white/30 hover:text-white transition-all" onClick={() => setCurrentIndex((currentIndex + 1) % project.images!.length)}>
+
+            {/* Next */}
+            <button 
+              className="absolute right-0 md:right-4 z-[1010] p-4 text-white/50 hover:text-white transition-all" 
+              onClick={(e) => {
+                e.stopPropagation();
+                setCurrentIndex((currentIndex + 1) % project.images!.length);
+              }}
+            >
               <ChevronRight size={48} />
             </button>
           </div>
+          
           {project.images[currentIndex].caption && (
-            <p className="mt-4 text-white/80 font-serif italic text-lg">{project.images[currentIndex].caption}</p>
+            <p className="mt-4 text-white/80 font-serif italic text-lg z-[1010]" onClick={(e) => e.stopPropagation()}>
+              {project.images[currentIndex].caption}
+            </p>
           )}
         </div>
       )}
 
-      {/* FOOTER - Matching your Homepage style */}
+      {/* FOOTER */}
       <footer className="border-t border-gray-200 py-12">
-        <div className="max-w-7xl mx-auto px-6">
+        <div className="max-w-7xl mx-auto px-6 font-sans">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-gray-600 text-sm font-sans">
             <div className="text-center md:text-left">
-              <p className="text-gray-900 font-semibold mb-2 font-sans">Shejal Tiwari</p>
+              <p className="text-gray-900 font-semibold mb-2 font-sans font-sans">Shejal Tiwari</p>
               <p>© {new Date().getFullYear()} · Built with Next.js & Sanity</p>
             </div>
             <Link href="/projectsArchive" className="hover:text-gray-900 underline underline-offset-4">
