@@ -123,7 +123,7 @@ export default function Home() {
         {/* Mobile Navigation Dropdown */}
         {isMobileMenuOpen && (
           <div className="absolute top-0 left-0 w-full h-screen bg-white flex flex-col justify-center items-center gap-8 md:hidden">
-            <Link href="/projects" onClick={() => setIsMobileMenuOpen(false)} className="text-2xl text-gray-900 font-serif">
+            <Link href="/projectsArchive" onClick={() => setIsMobileMenuOpen(false)} className="text-2xl text-gray-900 font-serif">
               Projects
             </Link>
             <Link href="/writings" onClick={() => setIsMobileMenuOpen(false)} className="text-2xl text-gray-900 font-serif">
