@@ -25,7 +25,7 @@ function urlFor(source: SanityImageSource) {
 
 // --- Interfaces ---
 interface Project {
-  _id: string; // Added _id for related query
+  _id: string;
   title: string;
   overview: string;
   category: string;
@@ -57,7 +57,6 @@ interface RelatedArticle {
 async function getProjectData(slug: string) {
   if (!slug) return null;
 
-  // 1. Fetch project ID and data first
   const project = await client.fetch(
     `*[_type == "project" && slug.current == $slug][0] {
       _id, title, overview, category, tags, body, githubLink, demoLink, 
@@ -69,8 +68,6 @@ async function getProjectData(slug: string) {
 
   if (!project) return null;
 
-  // 2. Fetch ALL related articles (Learning Logs) referencing this project
-  // Removed [0..1] limit and added reference check
   const relatedArticles = await client.fetch(
     `*[_type == "post" && relatedProject._ref == $projectId] | order(publishedAt desc) {
       _id,
@@ -185,19 +182,87 @@ export default function ProjectPage({ params }: { params: Promise<{ slug: string
           </div>
         </header>
 
-        {/* IMAGE SLIDER */}
+        {/* IMAGE SLIDER - FIXED SPACING */}
         {project.images && project.images.length > 0 && (
           <section className="mb-20">
-            <Swiper modules={[Navigation, Pagination]} spaceBetween={20} slidesPerView={1} navigation={true} pagination={{ clickable: true }} className="rounded-sm border border-gray-200 overflow-hidden">
-              {project.images.map((img, index) => (
-                <SwiperSlide key={img._key}>
-                  <div className="relative aspect-[16/9] cursor-zoom-in group" onClick={() => { setCurrentIndex(index); setIsModalOpen(true); }}>
-                    <Image src={urlFor(img).width(1200).url()} alt={project.title} fill className="object-cover" priority={index === 0} />
-                  </div>
-                </SwiperSlide>
-              ))}
-            </Swiper>
-            <p className="mt-4 text-center text-[10px] text-gray-400 uppercase tracking-widest font-sans font-bold">Click to Expand Focus</p>
+            <div className="relative pb-12">
+              <Swiper 
+                modules={[Navigation, Pagination]} 
+                spaceBetween={20} 
+                slidesPerView={1} 
+                navigation={true} 
+                pagination={{ 
+                  clickable: true,
+                  el: '.custom-pagination',
+                }} 
+                className="rounded-sm border border-gray-200 overflow-hidden"
+              >
+                {project.images.map((img, index) => (
+                  <SwiperSlide key={img._key}>
+                    <div 
+                      className="relative w-full cursor-zoom-in group bg-gray-50"
+                      style={{ 
+                        minHeight: '400px',
+                        maxHeight: '70vh'
+                      }}
+                      onClick={() => { 
+                        setCurrentIndex(index); 
+                        setIsModalOpen(true); 
+                      }}
+                    >
+                      <Image 
+                        src={urlFor(img).width(1200).quality(90).url()} 
+                        alt={img.caption || project.title} 
+                        fill 
+                        className="object-contain"
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 1200px"
+                        priority={index === 0}
+                      />
+                      {/* Optional: Add a subtle zoom indicator */}
+                      <div className="absolute inset-0 bg-black opacity-0 group-hover:opacity-5 transition-opacity pointer-events-none" />
+                    </div>
+                    {img.caption && (
+                      <p className="text-center text-sm text-gray-600 italic mt-3 px-4 font-serif">
+                        {img.caption}
+                      </p>
+                    )}
+                  </SwiperSlide>
+                ))}
+              </Swiper>
+              
+              {/* Custom pagination container with proper spacing */}
+              <div className="custom-pagination swiper-pagination mt-6"></div>
+              
+              <p className="mt-6 text-center text-[10px] text-gray-400 uppercase tracking-widest font-sans font-bold">
+                Click to Expand Focus
+              </p>
+            </div>
+            
+            <style jsx global>{`
+              .custom-pagination {
+                position: relative !important;
+                bottom: auto !important;
+                left: 0 !important;
+                width: 100% !important;
+                display: flex !important;
+                justify-content: center !important;
+                gap: 8px !important;
+              }
+              
+              .custom-pagination .swiper-pagination-bullet {
+                width: 8px !important;
+                height: 8px !important;
+                background: #d1d5db !important;
+                opacity: 1 !important;
+                transition: all 0.3s ease !important;
+              }
+              
+              .custom-pagination .swiper-pagination-bullet-active {
+                background: #1f2937 !important;
+                width: 24px !important;
+                border-radius: 4px !important;
+              }
+            `}</style>
           </section>
         )}
 
@@ -256,7 +321,7 @@ export default function ProjectPage({ params }: { params: Promise<{ slug: string
           </article>
         )}
 
-        {/* RELATED WRITINGS - Fetching ALL related articles */}
+        {/* RELATED WRITINGS */}
         {relatedArticles.length > 0 && (
           <section className="mt-20 pt-20 border-t border-gray-200">
             <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 md:mb-12 gap-4">
@@ -305,13 +370,21 @@ export default function ProjectPage({ params }: { params: Promise<{ slug: string
         </section>
       </main>
 
-      {/* MODAL */}
+      {/* MODAL - OPTIMIZED SIZES */}
       {isModalOpen && project.images && (
         <div className="fixed inset-0 z-[1000] bg-black/95 flex flex-col items-center justify-center p-4" onClick={() => setIsModalOpen(false)}>
           <button onClick={(e) => { e.stopPropagation(); setIsModalOpen(false); }} className="absolute top-6 right-6 z-[1010] text-white/70 hover:text-white transition-colors"><X size={36} /></button>
           <div className="relative w-full h-full flex items-center justify-center group">
             <button className="absolute left-0 md:left-4 z-[1010] p-4 text-white/30 hover:text-white transition-all" onClick={(e) => { e.stopPropagation(); setCurrentIndex((currentIndex + project.images!.length - 1) % project.images!.length); }}><ChevronLeft size={48} /> </button>
-            <div className="relative w-full h-full max-w-6xl max-h-[85vh]" onClick={(e) => e.stopPropagation()}><Image src={urlFor(project.images[currentIndex]).width(1800).url()} alt="Fullscreen focus" fill className="object-contain" /></div>
+            <div className="relative w-full h-full max-w-6xl max-h-[85vh]" onClick={(e) => e.stopPropagation()}>
+              <Image 
+                src={urlFor(project.images[currentIndex]).width(1800).quality(95).url()} 
+                alt="Fullscreen focus" 
+                fill 
+                className="object-contain"
+                sizes="100vw"
+              />
+            </div>
             <button className="absolute right-0 md:right-4 z-[1010] p-4 text-white/30 hover:text-white transition-all" onClick={(e) => { e.stopPropagation(); setCurrentIndex((currentIndex + 1) % project.images!.length); }}><ChevronRight size={48} /></button>
           </div>
           {project.images[currentIndex].caption && <p className="mt-4 text-white/80 font-serif italic text-lg z-[1010]" onClick={(e) => e.stopPropagation()}>{project.images[currentIndex].caption}</p>}
