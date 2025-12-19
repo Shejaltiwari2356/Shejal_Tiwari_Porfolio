@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { 
   ArrowLeft, CheckCircle2, Circle, Clock, 
   BookOpen, Code2, Brain, Target, TrendingUp,
-  Github, Linkedin, ChevronDown, ChevronUp
+  Github, Linkedin, ChevronDown, ChevronUp 
 } from 'lucide-react';
 
 interface Phase {
@@ -26,7 +26,7 @@ const roadmapPhases: Phase[] = [
     id: 'phase-1',
     number: 1,
     title: 'Foundation & PyTorch Intro',
-    status: 'completed',
+    status: 'in-progress',
     duration: 'Month 1 (4 weeks)',
     focusArea: 'Python, Math, PyTorch Basics',
     description: 'Building strong foundations in Python programming, essential mathematics for ML, and introduction to PyTorch.',
@@ -43,7 +43,7 @@ const roadmapPhases: Phase[] = [
     id: 'phase-2',
     number: 2,
     title: 'Machine Learning Core',
-    status: 'completed',
+    status: 'in-progress',
     duration: 'Months 2-3 (8 weeks)',
     focusArea: 'Supervised & Unsupervised Learning',
     description: 'Mastering core machine learning algorithms and building end-to-end ML workflows.',
@@ -60,7 +60,7 @@ const roadmapPhases: Phase[] = [
     id: 'phase-3',
     number: 3,
     title: 'Deep Learning & PyTorch Mastery',
-    status: 'completed',
+    status: 'upcoming',
     duration: 'Months 4-5 (8 weeks)',
     focusArea: 'CNNs, RNNs, Transfer Learning',
     description: 'Deep dive into neural networks, computer vision, and sequential models using PyTorch.',
@@ -76,7 +76,7 @@ const roadmapPhases: Phase[] = [
     id: 'phase-4',
     number: 4,
     title: 'Gen AI/LLM & Deployment Readiness',
-    status: 'in-progress',
+    status: 'upcoming',
     duration: 'Month 6 (4 weeks)',
     focusArea: 'Transformers, LLMs, Docker',
     description: 'Learning generative AI, working with large language models, and deploying ML applications.',
@@ -146,16 +146,16 @@ const tools = [
 ];
 
 export default function RoadmapPage() {
-  const [expandedPhase, setExpandedPhase] = useState<string>('phase-4');
+  const [expandedPhase, setExpandedPhase] = useState<string>('phase-1');
 
   const getStatusIcon = (status: Phase['status']) => {
     switch (status) {
       case 'completed':
         return <CheckCircle2 className="w-5 h-5 text-gray-900" />;
       case 'in-progress':
-        return <Clock className="w-5 h-5 text-gray-900" />;
+        return <Clock className="w-5 h-5 text-gray-900 animate-pulse" />;
       case 'upcoming':
-        return <Circle className="w-5 h-5 text-gray-400" />;
+        return <Circle className="w-5 h-5 text-gray-300" />;
     }
   };
 
@@ -205,7 +205,7 @@ export default function RoadmapPage() {
         <header className="mb-16">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-gray-100 rounded-full mb-6">
             <TrendingUp className="w-4 h-4 text-gray-900" />
-            <span className="text-sm text-gray-900">12-Month Learning Journey</span>
+            <span className="text-sm text-gray-900 font-medium">Currently On-going: Phase 1 & 2</span>
           </div>
 
           <h1 className="text-4xl md:text-5xl font-serif font-normal text-gray-900 mb-6 leading-tight">
@@ -214,7 +214,6 @@ export default function RoadmapPage() {
 
           <p className="text-lg md:text-xl text-gray-600 leading-relaxed mb-8">
             A comprehensive 12-month guide documenting my transition from full-stack development to artificial intelligence. 
-            Follow along as I break down complex ML concepts, share learning resources, and build real-world projects.
           </p>
 
           <div className="p-6 bg-gray-900 rounded-sm text-white mb-8">
@@ -255,11 +254,15 @@ export default function RoadmapPage() {
             {internshipPhases.map((phase) => (
               <div 
                 key={phase.id}
-                className="border border-gray-200 rounded-sm overflow-hidden"
+                className={`border rounded-sm overflow-hidden transition-all ${
+                  phase.status === 'in-progress' ? 'border-gray-900 shadow-md ring-1 ring-gray-900' : 'border-gray-200'
+                }`}
               >
                 <button
                   onClick={() => setExpandedPhase(expandedPhase === phase.id ? '' : phase.id)}
-                  className="w-full p-6 flex items-start gap-4 text-left hover:bg-gray-50 transition-colors"
+                  className={`w-full p-6 flex items-start gap-4 text-left hover:bg-gray-50 transition-colors ${
+                    phase.status === 'in-progress' ? 'bg-gray-50' : ''
+                  }`}
                 >
                   <div className="shrink-0 mt-1">
                     {getStatusIcon(phase.status)}
@@ -267,10 +270,10 @@ export default function RoadmapPage() {
 
                   <div className="flex-1 min-w-0">
                     <div className="flex flex-wrap items-center gap-3 mb-3">
-                      <span className="text-xs uppercase tracking-wide text-gray-500">
-                        Phase {phase.number}
+                      <span className="text-xs uppercase tracking-wide text-gray-500 font-bold">
+                        Phase {phase.number} {phase.status === 'in-progress' && '• ON-GOING'}
                       </span>
-                      <span className="px-3 py-1 bg-gray-100 text-gray-900 rounded-full text-xs font-medium">
+                      <span className="px-3 py-1 bg-white border border-gray-200 text-gray-900 rounded-full text-xs font-medium">
                         {phase.duration}
                       </span>
                     </div>
@@ -294,7 +297,7 @@ export default function RoadmapPage() {
                 </button>
 
                 {expandedPhase === phase.id && (
-                  <div className="px-6 pb-6 space-y-6 border-t border-gray-200 bg-gray-50">
+                  <div className="px-6 pb-6 space-y-6 border-t border-gray-200 bg-white">
                     {/* Skills */}
                     <div className="pt-6">
                       <h4 className="flex items-center gap-2 text-base font-semibold text-gray-900 mb-4">
@@ -303,8 +306,8 @@ export default function RoadmapPage() {
                       </h4>
                       <div className="space-y-3">
                         {phase.skills.map((skill, i) => (
-                          <div key={i} className="flex items-start gap-3 p-4 bg-white border border-gray-200 rounded-sm">
-                            <CheckCircle2 className="w-4 h-4 text-gray-400 shrink-0 mt-0.5" />
+                          <div key={i} className="flex items-start gap-3 p-4 bg-gray-50 border border-gray-200 rounded-sm">
+                            <CheckCircle2 className={`w-4 h-4 shrink-0 mt-0.5 ${phase.status === 'in-progress' ? 'text-gray-900' : 'text-gray-400'}`} />
                             <span className="text-gray-700 text-sm leading-relaxed">{skill}</span>
                           </div>
                         ))}
@@ -317,8 +320,8 @@ export default function RoadmapPage() {
                         <Code2 className="w-5 h-5" />
                         Portfolio Project
                       </h4>
-                      <div className="p-4 bg-white border-2 border-gray-900 rounded-sm">
-                        <p className="text-gray-700 leading-relaxed">{phase.project}</p>
+                      <div className={`p-4 bg-white border-2 border-gray-900 rounded-sm`}>
+                        <p className="text-gray-700 leading-relaxed font-medium">{phase.project}</p>
                       </div>
                     </div>
                   </div>
@@ -381,7 +384,6 @@ export default function RoadmapPage() {
 
                 {expandedPhase === phase.id && (
                   <div className="px-6 pb-6 space-y-6 border-t border-gray-200 bg-gray-50">
-                    {/* Skills */}
                     <div className="pt-6">
                       <h4 className="flex items-center gap-2 text-base font-semibold text-gray-900 mb-4">
                         <Brain className="w-5 h-5" />
@@ -397,7 +399,6 @@ export default function RoadmapPage() {
                       </div>
                     </div>
 
-                    {/* Project */}
                     <div>
                       <h4 className="flex items-center gap-2 text-base font-semibold text-gray-900 mb-4">
                         <Code2 className="w-5 h-5" />
@@ -436,7 +437,7 @@ export default function RoadmapPage() {
             Following a similar path?
           </h3>
           <p className="text-gray-600 mb-6 leading-relaxed">
-            I document every concept I learn in detailed articles. Check out my writings to learn alongside me and see how I'm implementing these concepts in real projects.
+            I document every concept I learn in detailed articles. Check out my writings to learn alongside me.
           </p>
           <div className="flex flex-wrap gap-4">
             <Link 
@@ -446,36 +447,17 @@ export default function RoadmapPage() {
               Read My Articles
               <BookOpen className="w-4 h-4" />
             </Link>
-            <Link 
-              href="/projectsArchive"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-white text-gray-900 border border-gray-300 hover:border-gray-900 rounded-md transition-all"
-            >
-              View My Projects
-              <Code2 className="w-4 h-4" />
-            </Link>
           </div>
         </section>
       </main>
 
       {/* FOOTER */}
       <footer className="border-t border-gray-200 py-12 mt-20">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-            <div className="text-center md:text-left">
-              <p className="text-gray-900 font-semibold mb-2">Shejal Tiwari</p>
-              <p className="text-gray-600 text-sm">
-                © {new Date().getFullYear()} · Built with Next.js & Sanity
-              </p>
-            </div>
-            <div className="flex gap-4">
-              <a href="https://www.linkedin.com/in/shejal-tiwari-a0736a256/" target="_blank" rel="noopener noreferrer" className="w-10 h-10 flex items-center justify-center border border-gray-300 hover:border-gray-900 text-gray-600 hover:text-gray-900 rounded-full transition-all">
-                <Linkedin className="w-5 h-5" />
-              </a>
-              <a href="https://github.com/Shejaltiwari2356" target="_blank" rel="noopener noreferrer" className="w-10 h-10 flex items-center justify-center border border-gray-300 hover:border-gray-900 text-gray-600 hover:text-gray-900 rounded-full transition-all">
-                <Github className="w-5 h-5" />
-              </a>
-            </div>
-          </div>
+        <div className="max-w-7xl mx-auto px-6 text-center">
+          <p className="text-gray-900 font-semibold mb-2">Shejal Tiwari</p>
+          <p className="text-gray-600 text-sm">
+            © {new Date().getFullYear()} · Built with Next.js & Sanity
+          </p>
         </div>
       </footer>
     </div>
